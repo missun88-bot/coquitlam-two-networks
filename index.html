@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="theme-color" content="#101820">
+  <meta name="description" content="Explore Coquitlam through two ways of moving: roads that take us across the city faster and footpaths that lead beyond the road network into its parks and mountain landscapes. Two synchronized maps in Statistics Canada Lambert projection.">
+  <title>Two Networks, One City | Coquitlam, BC</title>
+  <link rel="stylesheet" href="./resources/ol.css">
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+  <div class="page-shell">
+    <header class="site-header">
+      <div class="eyebrow"><span class="eyebrow-mark" aria-hidden="true"></span> 30DAYMAPCHALLENGE <span class="eyebrow-sep">/</span> OPENSTREETMAP</div>
+      <h1>Two Networks, <em>One City.</em></h1>
+      <p class="story-axis"><span class="story-speed">Faster through the city.</span> <span class="story-beyond">Further into its landscape.</span></p>
+      <p class="deck">From its neighbourhood streets to its forested slopes, Coquitlam invites two different journeys. Roads help us cross the city faster; footpaths lead beyond the street grid — toward creeks, mountain trails, and views reached one step at a time. <strong>Two networks, two ways to discover the same place.</strong></p>
+      <div class="utility-bar">
+        <div class="location"><span class="location-icon" aria-hidden="true">⌖</span> COQUITLAM, BRITISH COLUMBIA <span class="sep">·</span> <span class="projection">STATISTICS CANADA LAMBERT / EPSG:3347</span></div>
+        <button type="button" id="reset-view" class="reset-button" title="Return both maps to the full Coquitlam extent"><span aria-hidden="true">↺</span> Reset both maps</button>
+      </div>
+    </header>
+
+    <main>
+      <div class="maps" aria-label="Two synchronized interactive maps of Coquitlam">
+        <section class="map-card vehicle-card" aria-labelledby="vehicle-title">
+          <header class="map-card-header">
+            <div class="map-heading"><span class="map-number">01</span><div><span class="map-kicker">THE ROAD NETWORK</span><h2 id="vehicle-title">City for <span>Vehicles</span></h2></div></div>
+            <div class="tiny-descriptor">MOVE FASTER</div>
+          </header>
+          <div class="map-frame"><div class="map-canvas" id="map-vehicles" role="application" aria-label="Vehicle network map; pan and zoom to reveal major road labels, hover roads to identify them"></div><div class="feature-info" id="info-vehicles" hidden></div><div class="map-corner">COQUITLAM / BC</div></div>
+          <div class="map-legend road-legend" aria-label="Road line width legend">
+            <span class="legend-label">ROAD HIERARCHY</span>
+            <span class="legend-item"><i class="legend-line highway"></i> Major routes</span>
+            <span class="legend-item"><i class="legend-line arterial"></i> Main roads</span>
+            <span class="legend-item"><i class="legend-line connecting"></i> Connecting</span>
+            <span class="legend-item"><i class="legend-line local"></i> Local streets</span>
+            <span class="legend-item"><i class="legend-line service"></i> Service</span>
+          </div>
+        </section>
+
+        <section class="map-card walking-card" aria-labelledby="pedestrian-title">
+          <header class="map-card-header">
+            <div class="map-heading"><span class="map-number">02</span><div><span class="map-kicker">THE PEDESTRIAN NETWORK</span><h2 id="pedestrian-title">City for <span>People</span></h2></div></div>
+            <div class="tiny-descriptor">GO BEYOND</div>
+          </header>
+          <div class="map-frame"><div class="map-canvas" id="map-walking" role="application" aria-label="Pedestrian network map; hover or tap any mapped path to identify it"></div><div class="feature-info" id="info-walking" hidden></div><div class="map-corner">COQUITLAM / BC</div></div>
+          <div class="map-legend walking-legend" aria-label="Pedestrian map legend"><span class="legend-label">MAPPED PATH NETWORK</span><span class="legend-item"><i class="legend-line pedestrian"></i> Footways, trails, pedestrian ways &amp; steps</span></div>
+        </section>
+      </div>
+      <div class="under-maps"><div class="synchint"><span class="sync-mark" aria-hidden="true">↔</span><strong>Linked views.</strong> Pan or zoom either map to explore the same location in both. <span class="hover-guidance">Hover a line for its name and type; tap a line on touchscreens. Major road names appear as you zoom in.</span></div><div class="map-count" id="data-count">Loading OSM networks…</div></div>
+      <section class="reading-note" aria-label="About this map"><span class="note-index">A NOTE ON THE MAP</span><p>Line weight on the vehicle map represents <strong>OpenStreetMap road classification</strong>, not traffic volume or measured road width. The pedestrian map includes paths explicitly mapped as footways, trails, pedestrian ways or steps; it does not represent every sidewalk or all possible walking routes.</p></section>
+    </main>
+    <footer class="site-footer">
+      <div class="footer-spotlight">
+        <section class="designer-credit" aria-label="Designer credit">
+          <span class="footer-kicker">DESIGNED &amp; DEVELOPED BY</span>
+          <h3>Iris Sun<span class="footer-period">.</span></h3>
+          <p>Data visualization &amp; storytelling</p>
+          <a href="https://public.tableau.com/app/profile/iris6683" target="_blank" rel="noopener noreferrer">Explore more visualizations <span aria-hidden="true">↗</span></a>
+        </section>
+        <section class="challenge-credit" aria-label="Map challenge project">
+          <span class="footer-kicker">A MAP CHALLENGE PROJECT</span>
+          <h3>#30DayMapChallenge <span>2026</span></h3>
+          <p>OpenStreetMap theme <span class="footer-dot">·</span> Coquitlam, British Columbia</p>
+          <p class="challenge-thought">Roads take us places. Paths invite us further.</p>
+        </section>
+      </div>
+      <div class="footer-credits">
+        <span>MAP DATA: <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">© OPENSTREETMAP CONTRIBUTORS</a> · <a href="https://opendatacommons.org/licenses/odbl/1-0/" target="_blank" rel="noopener noreferrer">ODbL</a></span>
+        <span>MADE WITH QGIS / QGIS2WEB / OPENLAYERS</span>
+        <span>STATISTICS CANADA LAMBERT · EPSG:3347</span>
+      </div>
+    </footer>
+  </div>
+  <script src="./resources/proj4.js"></script>
+  <script src="./resources/ol.js"></script>
+  <script src="./data/vehicles.js"></script>
+  <script src="./data/walking.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

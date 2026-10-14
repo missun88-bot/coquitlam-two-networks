@@ -1,0 +1,12 @@
+# Temporary OS / editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+*.swp
+
+# Local QGIS work (keep source project outside this publication repo)
+*.qgz~
+*.gpkg-wal
+*.gpkg-shm
