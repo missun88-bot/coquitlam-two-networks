@@ -103,101 +103,13 @@
   const vehicleMap = makeMap('map-vehicles',vehicles,vehicleStyle,true);
   const walkingMap = makeMap('map-walking',walking,pedestrianStyle);
 
-  // The new combined view reuses the SAME data, styling functions, label rules,
-  // Lambert projection and shared view. The original compare maps are unmodified.
-  const combinedVehicleLayer = new ol.layer.Vector({source:vehicles,style:vehicleStyle,declutter:false,renderBuffer:140});
-  const combinedWalkingLayer = new ol.layer.Vector({source:walking,style:pedestrianStyle,declutter:false,renderBuffer:140});
-  const combinedLabelLayer = new ol.layer.Vector({source:vehicles,style:vehicleLabelStyle,declutter:true,renderBuffer:200});
-  const combinedMap = new ol.Map({
-    target:'map-combined',
-    layers:[combinedVehicleLayer,combinedWalkingLayer,combinedLabelLayer],
-    view:view,
-    controls:[new ol.control.Zoom(),new ol.control.Attribution({collapsible:true})],
-    moveTolerance:4
-  });
-  const compareContainer = document.getElementById('compare-maps');
-  const togetherCard = document.getElementById('combined-map-card');
-  const compareButton = document.getElementById('mode-compare');
-  const togetherButton = document.getElementById('mode-together');
-  const compareHint = document.getElementById('hint-compare');
-  const togetherHint = document.getElementById('hint-together');
-  let displayMode = 'compare';
-  // Use each mode's ACTUAL available map area when changing layouts. The
-  // comparison is deliberately fitted to a narrower panel; retaining that
-  // same absolute zoom in Explore Together wastes most of the wider canvas.
-  // We preserve the geographic centre and the user's zoom relative to the
-  // city-wide view, while scaling the network to fill the new map viewport.
-  function getModeSize(mode) {
-    if (mode==='together') {
-      const size=combinedMap.getSize();
-      return size && size[0]>0 && size[1]>0 ? size : null;
-    }
-    const first=vehicleMap.getSize(), second=walkingMap.getSize();
-    if (!first || !second || !first[0] || !first[1] || !second[0] || !second[1]) return null;
-    return [Math.min(first[0],second[0]),Math.min(first[1],second[1])];
-  }
-  function cityFitResolution(size) {
-    // Match the full-extent padding already used in resetView().
-    return view.getResolutionForExtent(FULL_EXTENT,[Math.max(1,size[0]-70),Math.max(1,size[1]-60)]);
-  }
-  function setDisplayMode(nextMode) {
-    if(nextMode===displayMode) return;
-    const oldSize=getModeSize(displayMode);
-    const currentResolution=view.getResolution();
-    const relativeZoom=oldSize && currentResolution
-      ? currentResolution/cityFitResolution(oldSize) : 1;
-    displayMode=nextMode;
-    const together=nextMode==='together';
-    compareContainer.hidden=together;
-    togetherCard.hidden=!together;
-    compareHint.hidden=together;
-    togetherHint.hidden=!together;
-    compareButton.classList.toggle('is-active',!together);
-    togetherButton.classList.toggle('is-active',together);
-    compareButton.setAttribute('aria-pressed',String(!together));
-    togetherButton.setAttribute('aria-pressed',String(together));
-    document.getElementById('info-vehicles').hidden=true;
-    document.getElementById('info-walking').hidden=true;
-    document.getElementById('info-combined').hidden=true;
-    requestAnimationFrame(function(){
-      if(together) combinedMap.updateSize();
-      else {vehicleMap.updateSize();walkingMap.updateSize();}
-      const newSize=getModeSize(nextMode);
-      if (newSize) view.setResolution(cityFitResolution(newSize)*relativeZoom);
-    });
-  }
-  compareButton.addEventListener('click',()=>setDisplayMode('compare'));
-  togetherButton.addEventListener('click',()=>setDisplayMode('together'));
-
-  // Visibility controls exist only in the optional combined view.
-  // Keep at least one network visible to avoid a confusing blank map.
-  const showVehicles = document.getElementById('show-vehicles');
-  const showWalking = document.getElementById('show-walking');
-  function applyCombinedVisibility(event) {
-    if (!showVehicles.checked && !showWalking.checked) event.target.checked=true;
-    combinedVehicleLayer.setVisible(showVehicles.checked);
-    combinedLabelLayer.setVisible(showVehicles.checked);
-    combinedWalkingLayer.setVisible(showWalking.checked);
-    document.getElementById('info-combined').hidden=true;
-  }
-  showVehicles.addEventListener('change',applyCombinedVisibility);
-  showWalking.addEventListener('change',applyCombinedVisibility);
-
   function resetView() {
-    let w,h;
-    if(displayMode==='together'){
-      combinedMap.updateSize();
-      const size=combinedMap.getSize();
-      if(!size || !size[0] || !size[1]) return;
-      [w,h]=size;
-    } else {
-      vehicleMap.updateSize();walkingMap.updateSize();
-      const size1=vehicleMap.getSize(), size2=walkingMap.getSize();
-      if(!size1 || !size2 || !size1[0] || !size2[0]) return;
-      // One view/resolution for both panels. Use the SMALLER of the two viewports.
-      w=Math.min(size1[0],size2[0]);
-      h=Math.min(size1[1],size2[1]);
-    }
+    vehicleMap.updateSize();walkingMap.updateSize();
+    const size1 = vehicleMap.getSize(), size2 = walkingMap.getSize();
+    if (!size1 || !size2) return;
+    // One view/resolution for both panels. Use the SMALLER of the two viewports.
+    const w = Math.min(size1[0],size2[0]);
+    const h = Math.min(size1[1],size2[1]);
     view.fit(FULL_EXTENT,{size:[w,h],padding:[30,35,30,35],duration:0,maxZoom:15});
   }
   document.getElementById('reset-view').addEventListener('click',resetView);
@@ -209,17 +121,16 @@
     const parent = info.parentElement;
     let currentFeature = null;
     function hide() {info.hidden = true;currentFeature = null;}
-    function setInfo(feature, featureNetwork) {
+    function setInfo(feature) {
       if (feature === currentFeature && !info.hidden) return;
       currentFeature = feature;
-      if(network==='combined') info.dataset.network=featureNetwork;
       const recordedName = String(feature.get('name')||'').trim();
-      const name = recordedName || (featureNetwork === 'vehicles' ? 'Unnamed road' : 'Unnamed path');
+      const name = recordedName || (network === 'vehicles' ? 'Unnamed road' : 'Unnamed path');
       const type = String(feature.get('highway') || 'route').replaceAll('_',' ');
       info.replaceChildren();
       const title=document.createElement('div');title.className='feature-name';title.textContent=name;
       const sub=document.createElement('div');sub.className='feature-type';
-      const category = featureNetwork==='vehicles' ? 'Road type' : 'Path type';
+      const category = network==='vehicles' ? 'Road type' : 'Path type';
       sub.textContent=category+': '+type;
       info.append(title,sub);
       if (!recordedName) {
@@ -243,14 +154,13 @@
     }
     function showAt(event) {
       // Labels and linework use the same source; query only the base line layer.
-      const hit=map.forEachFeatureAtPixel(event.pixel,(feature,layer)=>({feature,network:network==='combined'?(layer===combinedWalkingLayer?'walking':'vehicles'):network}),{
+      const hit=map.forEachFeatureAtPixel(event.pixel,feature=>feature,{
         hitTolerance:6,
-        // The label layer should not interfere with picking actual line features.
-        layerFilter:layer=>layer===map.getLayers().item(0) || (network==='combined' && layer===combinedWalkingLayer)
+        layerFilter:layer=>layer === map.getLayers().item(0)
       });
       map.getTargetElement().style.cursor=hit?'pointer':'grab';
       if (!hit) {hide();return;}
-      setInfo(hit.feature,hit.network);
+      setInfo(hit);
       placeInfo(event.pixel);
     }
     map.on('pointermove',function(event){
@@ -264,15 +174,13 @@
   }
   attachInspector(vehicleMap,'info-vehicles','vehicles');
   attachInspector(walkingMap,'info-walking','walking');
-  attachInspector(combinedMap,'info-combined','combined');
 
   const format = new Intl.NumberFormat('en-CA');
   document.getElementById('data-count').textContent = `${format.format(vehicles.getFeatures().length)} road segments · ${format.format(walking.getFeatures().length)} mapped paths`;
   requestAnimationFrame(resetView);
   let previousMobile = window.matchMedia('(max-width:720px)').matches;
   window.addEventListener('resize',function(){
-    if(displayMode==='together') combinedMap.updateSize();
-    else {vehicleMap.updateSize();walkingMap.updateSize();}
+    vehicleMap.updateSize(); walkingMap.updateSize();
     const mobile = window.matchMedia('(max-width:720px)').matches;
     if(mobile!==previousMobile){previousMobile=mobile;resetView();}
   });
